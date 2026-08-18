@@ -1,0 +1,1174 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icon.png" type="image/png" sizes="64x64">
+    <title>CatNote 喵筆記</title>
+    <link rel="manifest" href="manifest.json">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            500: '#22c55e',
+                            600: '#16a34a',
+                            700: '#15803d',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Marked.js for Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- DOMPurify for XSS Protection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 9999px;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background: #475569;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        /* Markdown Style overrides */
+        .markdown-body h1 { font-size: 1.875rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.5rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.25rem; }
+        .markdown-body h2 { font-size: 1.5rem; font-weight: 600; margin-top: 0.875rem; margin-bottom: 0.5rem; }
+        .markdown-body h3 { font-size: 1.25rem; font-weight: 600; margin-top: 0.75rem; margin-bottom: 0.25rem; }
+        .markdown-body p { margin-bottom: 0.75rem; line-height: 1.6; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown-body ol { list-style-type: decimal; padding-left: 1.5rem; margin-bottom: 0.75rem; }
+        .markdown-body blockquote { border-left: 4px solid #10b981; padding-left: 1rem; color: #64748b; margin-bottom: 0.75rem; font-style: italic; }
+        .markdown-body code { background-color: #f1f5f9; padding: 0.2rem 0.4rem; border-radius: 0.25rem; font-size: 0.875em; font-family: monospace; }
+        .dark .markdown-body code { background-color: #334155; color: #f1f5f9; }
+        .markdown-body pre { background-color: #1e293b; color: #f8fafc; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 0.75rem; }
+        .markdown-body pre code { background-color: transparent; color: inherit; padding: 0; }
+        .markdown-body table { width: 100%; border-collapse: collapse; margin-bottom: 0.75rem; }
+        .markdown-body th, .markdown-body td { border: 1px solid #cbd5e1; padding: 0.5rem; text-align: left; }
+        .dark .markdown-body th, .dark .markdown-body td { border-color: #475569; }
+        .markdown-body th { background-color: #f8fafc; }
+        .dark .markdown-body th { background-color: #1e293b; }
+        .markdown-body a { color: #16a34a; text-decoration: underline; }
+        .markdown-body img { max-width: 100%; border-radius: 0.375rem; }
+        .markdown-body hr { border: 0; border-top: 1px solid #e2e8f0; margin: 1.5rem 0; }
+        .dark .markdown-body hr { border-top-color: #334155; }
+    </style>
+</head>
+<body class="h-full bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 flex flex-col transition-colors duration-200">
+
+    <div class="flex h-screen overflow-hidden">
+        
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="w-64 bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col z-20 transition-all duration-300 absolute md:relative inset-y-0 left-0 -translate-x-full md:translate-x-0 shadow-lg md:shadow-none">
+            <!-- Sidebar Header -->
+            <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                <div class="flex items-center space-x-2.5 group" id="appTitleContainer">
+                    <div id="appLogoIcon" class="w-8 h-8 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
+                        <img src="icon.png" alt="CatNote 喵筆記 Logo" class="w-8 h-8 object-contain" onerror="this.onerror=null; this.src='https://placehold.co/32x32/22c55e/ffffff?text=🐱';">
+                    </div>
+                    <span id="appTitleText" class="font-bold text-lg tracking-wide text-slate-900 dark:text-white">CatNote 喵筆記</span>
+                </div>
+                <button id="closeSidebarBtn" class="md:hidden text-slate-500 hover:text-slate-700 dark:hover:text-slate-300">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- New Note Button -->
+            <div class="p-4">
+                <button id="newNoteBtn" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 px-4 rounded-xl flex items-center justify-center space-x-2 shadow-sm transition-all hover:shadow-md active:scale-95">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>新增筆記</span>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="flex-1 overflow-y-auto px-3 space-y-1">
+                <div class="text-xs font-semibold text-slate-400 dark:text-slate-500 px-3 py-2 uppercase tracking-wider">視圖分類</div>
+                
+                <button id="navAllNotes" data-view="all" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-book-bookmark w-5"></i>
+                    <span>所有筆記</span>
+                    <span id="countAll" class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">0</span>
+                </button>
+
+                <button id="navFavorites" data-view="favorites" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-star text-amber-500 w-5"></i>
+                    <span>星號收藏</span>
+                    <span id="countFav" class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">0</span>
+                </button>
+
+                <button id="navTrash" data-view="trash" class="nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-trash-can w-5"></i>
+                    <span>垃圾桶</span>
+                    <span id="countTrash" class="ml-auto text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300">0</span>
+                </button>
+
+                <!-- Categories -->
+                <div class="pt-4 text-xs font-semibold text-slate-400 dark:text-slate-500 px-3 py-2 uppercase tracking-wider flex justify-between items-center">
+                    <span>分類資料夾</span>
+                    <button id="addCategoryBtn" class="text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 p-1" title="新增分類">
+                        <i class="fa-solid fa-plus text-xs"></i>
+                    </button>
+                </div>
+                <div id="categoryList" class="space-y-1">
+                    <!-- Categories rendered dynamically -->
+                </div>
+
+                <!-- Tags -->
+                <div class="pt-4 text-xs font-semibold text-slate-400 dark:text-slate-500 px-3 py-2 uppercase tracking-wider">
+                    標籤雲
+                </div>
+                <div id="tagCloud" class="flex flex-wrap gap-1.5 px-3 pt-1 pb-4">
+                    <!-- Tags dynamic -->
+                </div>
+            </nav>
+
+            <!-- Sidebar Footer Settings -->
+            <div class="p-3 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between text-slate-500 dark:text-slate-400">
+                <button id="themeToggleBtn" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors flex items-center space-x-2 text-sm" title="切換深/淺色模式">
+                    <i class="fa-solid fa-moon dark:hidden"></i>
+                    <i class="fa-solid fa-sun hidden dark:block text-amber-400"></i>
+                    <span id="themeLabel" class="text-xs">深色模式</span>
+                </button>
+
+                <div class="flex items-center space-x-1">
+                    <button id="exportImportBtn" class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors text-sm" title="備份 / 匯入數據">
+                        <i class="fa-solid fa-database"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- NOTE LIST PANEL -->
+        <section id="listPanel" class="w-full md:w-80 lg:w-96 bg-white dark:bg-slate-800/60 border-r border-slate-200 dark:border-slate-700 flex flex-col shrink-0">
+            <!-- Search & Filter Header -->
+            <div class="p-3 border-b border-slate-200 dark:border-slate-700 space-y-2">
+                <div class="flex items-center space-x-2">
+                    <button id="openSidebarBtn" class="md:hidden p-2 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+                        <i class="fa-solid fa-bars"></i>
+                    </button>
+                    <div class="relative flex-1">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                        <input type="text" id="searchInput" placeholder="搜尋筆記內文與標題..." class="w-full pl-9 pr-8 py-2 bg-slate-100 dark:bg-slate-700/60 text-slate-800 dark:text-slate-100 text-sm rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 border border-transparent transition-all">
+                        <button id="clearSearchBtn" class="hidden absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs">
+                            <i class="fa-solid fa-circle-xmark"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1 pt-1">
+                    <span id="currentViewTitle" class="font-medium truncate max-w-[180px]">所有筆記</span>
+                    <div class="flex items-center space-x-1 shrink-0">
+                        <span>排序:</span>
+                        <select id="sortSelect" class="bg-transparent text-slate-700 dark:text-slate-300 font-medium focus:outline-none cursor-pointer">
+                            <option value="updated-desc">最新修改</option>
+                            <option value="updated-asc">最舊修改</option>
+                            <option value="title-asc">標題 A-Z</option>
+                            <option value="created-desc">建立時間</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Note List Cards Container -->
+            <div id="notesContainer" class="flex-1 overflow-y-auto divide-y divide-slate-100 dark:divide-slate-700/50">
+                <!-- Dynamic cards will appear here -->
+            </div>
+        </section>
+
+        <!-- MAIN EDITOR PANEL -->
+        <main id="editorPanel" class="flex-1 bg-white dark:bg-slate-900 flex flex-col h-full overflow-hidden relative">
+            
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-900">
+                <div class="w-20 h-20 bg-emerald-100 dark:bg-emerald-950/60 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-3xl mb-4 shadow-inner">
+                    <i class="fa-solid fa-cat"></i>
+                </div>
+                <h3 class="text-xl font-bold text-slate-800 dark:text-slate-200 mb-2">選擇或新增一篇筆記</h3>
+                <p class="text-slate-500 dark:text-slate-400 max-w-sm text-sm mb-6">隨時記錄靈感、整理知識，享受流暢 Markdown 寫作體驗。</p>
+                <button id="emptyStateNewBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 py-2.5 rounded-xl text-sm flex items-center space-x-2 shadow-md transition-all active:scale-95">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>立即建立新筆記</span>
+                </button>
+            </div>
+
+            <!-- Active Editor Area -->
+            <div id="activeEditor" class="flex-1 flex flex-col h-full">
+                
+                <!-- Editor Top Bar -->
+                <header class="border-b border-slate-200 dark:border-slate-800 p-3 flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 z-10">
+                    <div class="flex items-center space-x-2 overflow-x-auto py-1">
+                        <!-- Category Selector -->
+                        <div class="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
+                            <i class="fa-regular fa-folder text-emerald-600 dark:text-emerald-400"></i>
+                            <select id="noteCategorySelect" class="bg-transparent focus:outline-none cursor-pointer pr-1">
+                                <!-- Dynamic options -->
+                            </select>
+                        </div>
+
+                        <!-- Pin Button -->
+                        <button id="pinNoteBtn" class="p-1.5 text-slate-400 hover:text-amber-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm" title="置頂筆記">
+                            <i class="fa-solid fa-thumbtack"></i>
+                        </button>
+
+                        <!-- Star Button -->
+                        <button id="starNoteBtn" class="p-1.5 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm" title="加到收藏">
+                            <i class="fa-regular fa-star"></i>
+                        </button>
+
+                        <!-- Tag Input Pill Container -->
+                        <div id="noteTagsContainer" class="flex items-center space-x-1">
+                            <!-- Tags injected here -->
+                        </div>
+                        <button id="addTagInlineBtn" class="text-xs text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 px-2 py-1 border border-dashed border-slate-300 dark:border-slate-700 rounded-lg hover:border-emerald-500 transition-all">
+                            + 標籤
+                        </button>
+                    </div>
+
+                    <!-- Right Control Actions -->
+                    <div class="flex items-center space-x-1">
+                        <!-- View Toggle (Edit / Split / Preview) -->
+                        <div class="flex bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400">
+                            <button id="viewEditBtn" class="px-2.5 py-1 rounded-md transition-all">編輯</button>
+                            <button id="viewSplitBtn" class="px-2.5 py-1 rounded-md transition-all hidden sm:block">分頁</button>
+                            <button id="viewPreviewBtn" class="px-2.5 py-1 rounded-md transition-all">預覽</button>
+                        </div>
+
+                        <div class="h-4 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+
+                        <!-- Export / Actions Dropdown -->
+                        <button id="exportNoteMdBtn" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-sm" title="匯出 Markdown (.md)">
+                            <i class="fa-solid fa-download"></i>
+                        </button>
+
+                        <!-- Trash / Delete Button -->
+                        <button id="deleteNoteBtn" class="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-lg text-sm transition-colors" title="刪除筆記">
+                            <i class="fa-regular fa-trash-can"></i>
+                        </button>
+                    </div>
+                </header>
+
+                <!-- Note Title Input -->
+                <div class="px-6 pt-4 pb-2 bg-white dark:bg-slate-900">
+                    <input type="text" id="noteTitleInput" placeholder="輸入筆記標題..." class="w-full text-2xl md:text-3xl font-bold bg-transparent border-none outline-none text-slate-900 dark:text-slate-100 placeholder-slate-300 dark:placeholder-slate-600">
+                </div>
+
+                <!-- Editor Workspace -->
+                <div class="flex-1 flex overflow-hidden relative">
+                    <!-- Textarea Editor -->
+                    <div id="editorPane" class="flex-1 h-full p-6 pt-2 overflow-y-auto">
+                        <textarea id="noteContentArea" placeholder="在此開始撰寫內容，支援 Markdown 語法..." class="w-full h-full bg-transparent resize-none outline-none font-mono text-sm md:text-base leading-relaxed text-slate-800 dark:text-slate-200 placeholder-slate-300 dark:placeholder-slate-600"></textarea>
+                    </div>
+
+                    <!-- Markdown Live Preview Pane -->
+                    <div id="previewPane" class="flex-1 h-full p-6 pt-2 overflow-y-auto border-l border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 hidden">
+                        <div id="previewContent" class="markdown-body dark:text-slate-200">
+                            <!-- Rendered Markdown goes here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Editor Footer Stats -->
+                <footer class="px-6 py-2 border-t border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-xs text-slate-400 dark:text-slate-500 flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <span id="wordCount">字數: 0</span>
+                        <span id="charCount">字元: 0</span>
+                        <span id="readTime">預估閱讀: < 1 分鐘</span>
+                    </div>
+                    <div id="saveStatus" class="flex items-center space-x-1.5 text-emerald-600 dark:text-emerald-400">
+                        <i class="fa-solid fa-check text-[10px]"></i>
+                        <span>已自動儲存</span>
+                    </div>
+                </footer>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: ADD CATEGORY -->
+    <div id="addCategoryModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700 transform scale-95 transition-transform duration-200">
+            <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">新增筆記分類</h3>
+            <input type="text" id="categoryNameInput" placeholder="例如：工作項目、個人想法、讀書筆記..." class="w-full px-4 py-2.5 bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-100 rounded-xl text-sm outline-none focus:ring-2 focus:ring-emerald-500 mb-6">
+            <div class="flex justify-end space-x-3">
+                <button id="cancelCategoryBtn" class="px-4 py-2 text-sm rounded-xl text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 font-medium">取消</button>
+                <button id="confirmCategoryBtn" class="px-4 py-2 text-sm rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-medium shadow-sm">新增</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: BACKUP & IMPORT -->
+    <div id="dataModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100">資料備份與管理</h3>
+                <button id="closeDataModalBtn" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+            
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-6">您的所有筆記都安全地保存在本地瀏覽器 (localStorage) 中。您可以匯出備份以防萬一。</p>
+
+            <div class="space-y-3">
+                <button id="exportJsonBtn" class="w-full py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between transition-colors">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-file-export text-emerald-600 dark:text-emerald-400 text-lg"></i>
+                        <div class="text-left">
+                            <div class="text-sm font-semibold text-slate-800 dark:text-slate-200">匯出完整數據 JSON</div>
+                            <div class="text-[11px] text-slate-400">備份所有筆記、分類與設定</div>
+                        </div>
+                    </div>
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+                </button>
+
+                <label id="importJsonLabel" class="w-full py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 flex items-center justify-between transition-colors cursor-pointer">
+                    <div class="flex items-center space-x-3">
+                        <i class="fa-solid fa-file-import text-blue-600 dark:text-blue-400 text-lg"></i>
+                        <div class="text-left">
+                            <div class="text-sm font-semibold text-slate-800 dark:text-slate-200">匯入備份 JSON</div>
+                            <div class="text-[11px] text-slate-400">還原先前導出的 MeowNote 檔案</div>
+                        </div>
+                    </div>
+                    <input type="file" id="importJsonInput" accept=".json" class="hidden">
+                    <i class="fa-solid fa-chevron-right text-xs text-slate-400"></i>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- CONFIRM DIALOG MODAL -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-200">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl max-w-sm w-full p-6 shadow-2xl border border-slate-100 dark:border-slate-700 text-center">
+            <div class="w-12 h-12 rounded-full bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto mb-4 text-xl">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+            </div>
+            <h3 id="confirmTitle" class="text-lg font-bold text-slate-800 dark:text-slate-100 mb-2">確定要執行嗎？</h3>
+            <p id="confirmMessage" class="text-xs text-slate-500 dark:text-slate-400 mb-6">此動作無法復原。</p>
+            <div class="flex space-x-3">
+                <button id="cancelConfirmBtn" class="flex-1 py-2 rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium hover:bg-slate-100 dark:hover:bg-slate-700">取消</button>
+                <button id="okConfirmBtn" class="flex-1 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-sm font-medium shadow-sm">確定刪除</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION SYSTEM -->
+    <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
+
+    <script>
+        const STORAGE_KEY = 'meow_note_app_data_v2';
+
+        // Initial default state without sample notes
+        const defaultData = {
+            appName: 'CatNote 喵筆記',
+            categories: ['未分類', '工作項目', '個人想法', '讀書筆記'],
+            customCategories: [], // 追蹤使用者手動新增的分類
+            activeView: 'all', // 'all', 'favorites', 'trash', 'category', 'tag'
+            selectedCategoryName: null,
+            selectedTag: null,
+            activeNoteId: null,
+            notes: []
+        };
+
+        // Application State
+        let state = loadData();
+        let viewMode = 'edit'; // 'edit', 'split', 'preview'
+
+        function loadData() {
+            try {
+                const saved = localStorage.getItem(STORAGE_KEY);
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    parsed.appName = 'CatNote 喵筆記';
+                    if (!parsed.categories) parsed.categories = defaultData.categories;
+                    if (!parsed.customCategories) parsed.customCategories = [];
+                    return parsed;
+                }
+            } catch (e) {
+                console.error("Failed to load local storage", e);
+            }
+            return JSON.parse(JSON.stringify(defaultData));
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+                showSaveStatus();
+            } catch (e) {
+                console.error("Failed to save local storage", e);
+            }
+        }
+
+        function renderSidebar() {
+            // Calculate counts
+            const activeNotes = state.notes.filter(n => !n.isTrash);
+            const favNotes = state.notes.filter(n => !n.isTrash && n.isFavorite);
+            const trashNotes = state.notes.filter(n => n.isTrash);
+
+            document.getElementById('countAll').textContent = activeNotes.length;
+            document.getElementById('countFav').textContent = favNotes.length;
+            document.getElementById('countTrash').textContent = trashNotes.length;
+
+            // Define styles
+            const activeStyle = "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm";
+            const inactiveStyle = "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium";
+
+            // 1. Reset Top Nav Styles
+            navAllNotes.className = `nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${state.activeView === 'all' ? activeStyle : inactiveStyle}`;
+            navFavorites.className = `nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${state.activeView === 'favorites' ? activeStyle : inactiveStyle}`;
+            navTrash.className = `nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${state.activeView === 'trash' ? activeStyle : inactiveStyle}`;
+
+            // 2. Render Categories (EXACTLY ONE highlighted when in category view)
+            categoryList.innerHTML = '';
+            state.categories.forEach(cat => {
+                const count = activeNotes.filter(n => n.category === cat).length;
+                const isCatActive = (state.activeView === 'category' && state.selectedCategoryName === cat);
+                const isCustom = state.customCategories && state.customCategories.includes(cat);
+
+                const btn = document.createElement('div');
+                btn.className = `group w-full flex items-center space-x-2 px-3 py-2 rounded-xl text-sm transition-all border-l-4 cursor-pointer ${
+                    isCatActive 
+                    ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-semibold border-emerald-500 shadow-sm' 
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium border-transparent'
+                }`;
+
+                btn.innerHTML = `
+                    <i class="fa-regular fa-folder text-xs ${isCatActive ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}"></i>
+                    <span class="truncate flex-1 text-left">${escapeHtml(cat)}</span>
+                    <span class="text-xs px-2 py-0.5 rounded-full ${isCatActive ? 'bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'}">${count}</span>
+                    ${isCustom ? `
+                        <button class="delete-cat-btn opacity-0 group-hover:opacity-100 text-slate-400 hover:text-rose-500 p-1 rounded transition-opacity" title="刪除分類">
+                            <i class="fa-solid fa-trash-can text-xs"></i>
+                        </button>
+                    ` : ''}
+                `;
+
+                btn.onclick = (e) => {
+                    if (e.target.closest('.delete-cat-btn')) {
+                        e.stopPropagation();
+                        deleteCustomCategory(cat);
+                        return;
+                    }
+                    state.activeView = 'category';
+                    state.selectedCategoryName = cat;
+                    state.selectedTag = null;
+                    renderSidebar();
+                    renderNoteList();
+                    if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                };
+
+                categoryList.appendChild(btn);
+            });
+
+            // 3. Render Tag Cloud
+            tagCloud.innerHTML = '';
+            const allTags = new Set();
+            activeNotes.forEach(n => (n.tags || []).forEach(t => allTags.add(t)));
+
+            if (allTags.size === 0) {
+                tagCloud.innerHTML = `<span class="text-xs text-slate-400 italic py-1">尚無標籤</span>`;
+            } else {
+                allTags.forEach(tag => {
+                    const isTagActive = (state.activeView === 'tag' && state.selectedTag === tag);
+                    const pill = document.createElement('button');
+                    pill.className = `text-xs px-2.5 py-1 rounded-lg transition-all ${
+                        isTagActive 
+                        ? 'bg-emerald-600 text-white font-medium shadow-sm' 
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600'
+                    }`;
+                    pill.textContent = `# ${tag}`;
+                    pill.onclick = () => {
+                        state.activeView = 'tag';
+                        state.selectedTag = tag;
+                        state.selectedCategoryName = null;
+                        renderSidebar();
+                        renderNoteList();
+                        if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                    };
+                    tagCloud.appendChild(pill);
+                });
+            }
+        }
+
+        function renderNoteList() {
+            // Update Title Header
+            if (state.activeView === 'all') currentViewTitle.textContent = '所有筆記';
+            else if (state.activeView === 'favorites') currentViewTitle.textContent = '星號收藏';
+            else if (state.activeView === 'trash') currentViewTitle.textContent = '垃圾桶';
+            else if (state.activeView === 'category') currentViewTitle.textContent = `分類：${state.selectedCategoryName}`;
+            else if (state.activeView === 'tag') currentViewTitle.textContent = `標籤：#${state.selectedTag}`;
+
+            // Filter Notes
+            let filtered = state.notes.filter(n => {
+                if (state.activeView === 'trash') return n.isTrash;
+                if (n.isTrash) return false;
+
+                if (state.activeView === 'favorites') return n.isFavorite;
+                if (state.activeView === 'category') return n.category === state.selectedCategoryName;
+                if (state.activeView === 'tag') return (n.tags || []).includes(state.selectedTag);
+                return true;
+            });
+
+            // Search Keyword Filter
+            const query = searchInput.value.trim().toLowerCase();
+            if (query) {
+                filtered = filtered.filter(n => 
+                    (n.title && n.title.toLowerCase().includes(query)) || 
+                    (n.content && n.content.toLowerCase().includes(query))
+                );
+            }
+
+            // Sort Notes
+            const sortMode = sortSelect.value;
+            filtered.sort((a, b) => {
+                // Pinned notes always come first if not in trash
+                if (state.activeView !== 'trash') {
+                    if (a.isPinned && !b.isPinned) return -1;
+                    if (!a.isPinned && b.isPinned) return 1;
+                }
+                if (sortMode === 'updated-desc') return b.updatedAt - a.updatedAt;
+                if (sortMode === 'updated-asc') return a.updatedAt - b.updatedAt;
+                if (sortMode === 'created-desc') return b.createdAt - a.createdAt;
+                if (sortMode === 'title-asc') return (a.title || '').localeCompare(b.title || '');
+                return 0;
+            });
+
+            // Render DOM
+            notesContainer.innerHTML = '';
+
+            if (filtered.length === 0) {
+                notesContainer.innerHTML = `
+                    <div class="p-8 text-center text-slate-400 dark:text-slate-500">
+                        <i class="fa-regular fa-folder-open text-3xl mb-3 opacity-60"></i>
+                        <p class="text-sm">沒有找到相符的筆記</p>
+                    </div>
+                `;
+                // If currently active note is filtered out, clear selection or keep empty
+                if (filtered.findIndex(n => n.id === state.activeNoteId) === -1) {
+                    state.activeNoteId = null;
+                    renderActiveNote();
+                }
+                return;
+            }
+
+            // If active note is not in filtered list, select the first one
+            if (!state.activeNoteId || filtered.findIndex(n => n.id === state.activeNoteId) === -1) {
+                state.activeNoteId = filtered[0].id;
+            }
+
+            filtered.forEach(note => {
+                const isActive = note.id === state.activeNoteId;
+                const card = document.createElement('div');
+                card.className = `p-3.5 cursor-pointer transition-all border-l-4 ${
+                    isActive 
+                    ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-500' 
+                    : 'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/30'
+                }`;
+
+                const cleanSnippet = (note.content || '').replace(/[#*`>_~-]/g, '').trim().substring(0, 70);
+
+                card.innerHTML = `
+                    <div class="flex items-start justify-between gap-1 mb-1">
+                        <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100 truncate flex-1">
+                            ${note.isPinned && !note.isTrash ? '<i class="fa-solid fa-thumbtack text-amber-500 text-xs mr-1"></i>' : ''}
+                            ${escapeHtml(note.title || '無標題筆記')}
+                        </h4>
+                        <span class="text-[11px] text-slate-400 shrink-0">${formatDate(note.updatedAt)}</span>
+                    </div>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-2">${escapeHtml(cleanSnippet) || '無內文...'}</p>
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300">
+                            <i class="fa-regular fa-folder text-[10px] mr-1 text-emerald-600 dark:text-emerald-400"></i>
+                            ${escapeHtml(note.category || '未分類')}
+                        </span>
+                        ${note.isFavorite ? '<i class="fa-solid fa-star text-amber-400"></i>' : ''}
+                    </div>
+                `;
+
+                card.onclick = () => {
+                    state.activeNoteId = note.id;
+                    renderNoteList();
+                    renderActiveNote();
+                };
+
+                notesContainer.appendChild(card);
+            });
+
+            renderActiveNote();
+        }
+
+        function renderActiveNote() {
+            const note = state.notes.find(n => n.id === state.activeNoteId);
+
+            if (!note) {
+                activeEditor.classList.add('hidden');
+                emptyState.classList.remove('hidden');
+                return;
+            }
+
+            activeEditor.classList.remove('hidden');
+            emptyState.classList.add('hidden');
+
+            noteTitleInput.value = note.title || '';
+            noteContentArea.value = note.content || '';
+
+            // Update Pin & Star icon status
+            pinNoteBtn.className = `p-1.5 rounded-lg transition-colors text-sm ${note.isPinned ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`;
+            starNoteBtn.className = `p-1.5 rounded-lg transition-colors text-sm ${note.isFavorite ? 'text-amber-400 bg-amber-50 dark:bg-amber-950/40' : 'text-slate-400 hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`;
+            starNoteBtn.innerHTML = note.isFavorite ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
+
+            // Trash Mode Toggle
+            if (note.isTrash) {
+                deleteNoteBtn.innerHTML = '<i class="fa-solid fa-rotate-left text-emerald-600" title="還原筆記"></i>';
+                noteTitleInput.disabled = true;
+                noteContentArea.disabled = true;
+            } else {
+                deleteNoteBtn.innerHTML = '<i class="fa-regular fa-trash-can" title="移至垃圾桶"></i>';
+                noteTitleInput.disabled = false;
+                noteContentArea.disabled = false;
+            }
+
+            // Sync Category selector
+            noteCategorySelect.value = note.category || '未分類';
+
+            // Render Tags
+            noteTagsContainer.innerHTML = '';
+            (note.tags || []).forEach((tag, idx) => {
+                const pill = document.createElement('span');
+                pill.className = "inline-flex items-center space-x-1 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-xs border border-emerald-200 dark:border-emerald-800/50";
+                pill.innerHTML = `
+                    <span>#${escapeHtml(tag)}</span>
+                    ${!note.isTrash ? `<button onclick="removeTagFromActiveNote(${idx})" class="hover:text-rose-500 ml-1"><i class="fa-solid fa-xmark text-[10px]"></i></button>` : ''}
+                `;
+                noteTagsContainer.appendChild(pill);
+            });
+
+            updateMarkdownPreview();
+            updateWordStats();
+        }
+
+        function renderCategorySelectOptions() {
+            noteCategorySelect.innerHTML = '';
+            state.categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                noteCategorySelect.appendChild(opt);
+            });
+        }
+
+        function updateMarkdownPreview() {
+            const raw = noteContentArea.value || '';
+            if (typeof marked !== 'undefined') {
+                const parsed = marked.parse(raw);
+                previewContent.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(parsed) : parsed;
+            } else {
+                previewContent.textContent = raw;
+            }
+        }
+
+        function updateWordStats() {
+            const text = noteContentArea.value || '';
+            const charCountVal = text.length;
+            const wordCountVal = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const readTimeVal = Math.max(1, Math.ceil(wordCountVal / 200));
+
+            const wordCountEl = document.getElementById('wordCount');
+            const charCountEl = document.getElementById('charCount');
+            const readTimeEl = document.getElementById('readTime');
+
+            if (wordCountEl) wordCountEl.textContent = `字數: ${wordCountVal}`;
+            if (charCountEl) charCountEl.textContent = `字元: ${charCountVal}`;
+            if (readTimeEl) readTimeEl.textContent = `預估閱讀: < ${readTimeVal} 分鐘`;
+        }
+
+        function createNewNote() {
+            const newNote = {
+                id: 'note-' + Date.now(),
+                title: '無標題筆記',
+                content: '',
+                category: state.activeView === 'category' ? state.selectedCategoryName : '未分類',
+                tags: [],
+                isFavorite: false,
+                isPinned: false,
+                isTrash: false,
+                createdAt: Date.now(),
+                updatedAt: Date.now()
+            };
+
+            state.notes.unshift(newNote);
+            state.activeNoteId = newNote.id;
+
+            if (state.activeView === 'trash') {
+                state.activeView = 'all';
+            }
+
+            saveData();
+            renderSidebar();
+            renderNoteList();
+            renderActiveNote();
+
+            setTimeout(() => noteTitleInput.focus(), 100);
+            showToast('已建立新筆記', 'success');
+        }
+
+        function deleteOrRestoreNote() {
+            const note = state.notes.find(n => n.id === state.activeNoteId);
+            if (!note) return;
+
+            if (note.isTrash) {
+                // Restore
+                note.isTrash = false;
+                note.updatedAt = Date.now();
+                saveData();
+                renderSidebar();
+                renderNoteList();
+                showToast('已還原筆記', 'success');
+            } else {
+                // Move to trash
+                note.isTrash = true;
+                note.isPinned = false;
+                note.updatedAt = Date.now();
+                saveData();
+                renderSidebar();
+                renderNoteList();
+                showToast('已移至垃圾桶', 'info');
+            }
+        }
+
+        function addTagToNote() {
+            const note = state.notes.find(n => n.id === state.activeNoteId);
+            if (!note || note.isTrash) return;
+
+            const tag = prompt('請輸入新標籤名稱：');
+            if (tag && tag.trim()) {
+                const cleanTag = tag.trim().replace(/^#/, '');
+                if (!note.tags) note.tags = [];
+                if (!note.tags.includes(cleanTag)) {
+                    note.tags.push(cleanTag);
+                    saveData();
+                    renderSidebar();
+                    renderActiveNote();
+                    showToast(`已新增標籤「#${cleanTag}」`, 'success');
+                }
+            }
+        }
+
+        function removeTagFromActiveNote(index) {
+            const note = state.notes.find(n => n.id === state.activeNoteId);
+            if (!note || !note.tags) return;
+            note.tags.splice(index, 1);
+            saveData();
+            renderSidebar();
+            renderActiveNote();
+        }
+
+        function initApp() {
+            // Theme preference
+            if (localStorage.getItem('zen_theme') === 'dark' || (!('zen_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+                themeLabel.textContent = '淺色模式';
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeLabel.textContent = '深色模式';
+            }
+
+            updateAppTitleUI();
+
+            if (!state.activeNoteId && state.notes.length > 0) {
+                const activeNotes = state.notes.filter(n => !n.isTrash);
+                if (activeNotes.length > 0) {
+                    state.activeNoteId = activeNotes[0].id;
+                }
+            }
+
+            renderSidebar();
+            renderCategorySelectOptions();
+            renderNoteList();
+            renderActiveNote();
+
+            setViewMode('edit');
+            setupEventListeners();
+        }
+
+        function updateAppTitleUI() {
+            const name = state.appName || 'CatNote 喵筆記';
+            document.getElementById('appTitleText').textContent = name;
+            document.title = name;
+        }
+
+        function setupEventListeners() {
+            // Sidebar toggle for mobile
+            openSidebarBtn.onclick = () => sidebar.classList.remove('-translate-x-full');
+            closeSidebarBtn.onclick = () => sidebar.classList.add('-translate-x-full');
+
+            // Top Navigation Click Events (Strict Reset View)
+            navAllNotes.onclick = () => {
+                state.activeView = 'all';
+                state.selectedCategoryName = null;
+                state.selectedTag = null;
+                renderSidebar();
+                renderNoteList();
+                if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+            };
+
+            navFavorites.onclick = () => {
+                state.activeView = 'favorites';
+                state.selectedCategoryName = null;
+                state.selectedTag = null;
+                renderSidebar();
+                renderNoteList();
+                if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+            };
+
+            navTrash.onclick = () => {
+                state.activeView = 'trash';
+                state.selectedCategoryName = null;
+                state.selectedTag = null;
+                renderSidebar();
+                renderNoteList();
+                if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+            };
+
+            newNoteBtn.onclick = createNewNote;
+            emptyStateNewBtn.onclick = createNewNote;
+
+            // Search
+            searchInput.oninput = () => {
+                if (searchInput.value.trim()) clearSearchBtn.classList.remove('hidden');
+                else clearSearchBtn.classList.add('hidden');
+                renderNoteList();
+            };
+
+            clearSearchBtn.onclick = () => {
+                searchInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                renderNoteList();
+            };
+
+            sortSelect.onchange = () => renderNoteList();
+
+            // Real-time Title & Content editing
+            noteTitleInput.oninput = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note) {
+                    note.title = noteTitleInput.value;
+                    note.updatedAt = Date.now();
+                    saveData();
+                    renderNoteList();
+                }
+            };
+
+            noteContentArea.oninput = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note) {
+                    note.content = noteContentArea.value;
+                    note.updatedAt = Date.now();
+                    saveData();
+                    updateMarkdownPreview();
+                    updateWordStats();
+                    renderNoteList();
+                }
+            };
+
+            noteCategorySelect.onchange = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note) {
+                    note.category = noteCategorySelect.value;
+                    note.updatedAt = Date.now();
+                    saveData();
+                    renderSidebar();
+                    renderNoteList();
+                }
+            };
+
+            pinNoteBtn.onclick = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note) {
+                    note.isPinned = !note.isPinned;
+                    saveData();
+                    renderActiveNote();
+                    renderNoteList();
+                    showToast(note.isPinned ? '已置頂筆記' : '已取消置頂', 'info');
+                }
+            };
+
+            starNoteBtn.onclick = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note) {
+                    note.isFavorite = !note.isFavorite;
+                    saveData();
+                    renderSidebar();
+                    renderActiveNote();
+                    renderNoteList();
+                    showToast(note.isFavorite ? '已加入星號收藏' : '已移除收藏', 'info');
+                }
+            };
+
+            addTagInlineBtn.onclick = addTagToNote;
+            deleteNoteBtn.onclick = deleteOrRestoreNote;
+
+            // View modes
+            viewEditBtn.onclick = () => setViewMode('edit');
+            viewSplitBtn.onclick = () => setViewMode('split');
+            viewPreviewBtn.onclick = () => setViewMode('preview');
+
+            // Category Modal
+            addCategoryBtn.onclick = () => openModal(addCategoryModal);
+            cancelCategoryBtn.onclick = () => closeModal(addCategoryModal);
+            confirmCategoryBtn.onclick = () => {
+                const name = categoryNameInput.value.trim();
+                if (name && !state.categories.includes(name)) {
+                    state.categories.push(name);
+                    if (!state.customCategories) state.customCategories = [];
+                    state.customCategories.push(name);
+                    saveData();
+                    renderSidebar();
+                    renderCategorySelectOptions();
+                    categoryNameInput.value = '';
+                    closeModal(addCategoryModal);
+                    showToast(`已新增分類「${name}」`, 'success');
+                }
+            };
+
+            // Data Modal
+            exportImportBtn.onclick = () => openModal(dataModal);
+            closeDataModalBtn.onclick = () => closeModal(dataModal);
+
+            exportJsonBtn.onclick = () => {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+                const downloadAnchor = document.createElement('a');
+                downloadAnchor.setAttribute("href", dataStr);
+                downloadAnchor.setAttribute("download", `MeowNote_Backup_${new Date().toISOString().slice(0,10)}.json`);
+                document.body.appendChild(downloadAnchor);
+                downloadAnchor.click();
+                downloadAnchor.remove();
+                showToast('已成功匯出 JSON 備份', 'success');
+            };
+
+            importJsonInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        try {
+                            const imported = JSON.parse(event.target.result);
+                            if (imported && imported.notes) {
+                                state = imported;
+                                saveData();
+                                initApp();
+                                closeModal(dataModal);
+                                showToast('已成功還原備份資料', 'success');
+                            } else {
+                                showToast('無效的備份檔案格式', 'error');
+                            }
+                        } catch (err) {
+                            showToast('讀取檔案失敗', 'error');
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            };
+
+            exportNoteMdBtn.onclick = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (!note) return;
+                const blob = new Blob([note.content], { type: 'text/markdown;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${note.title || 'Untitled'}.md`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('已匯出 Markdown 檔案', 'success');
+            };
+
+            themeToggleBtn.onclick = () => {
+                const isDark = document.documentElement.classList.toggle('dark');
+                localStorage.setItem('zen_theme', isDark ? 'dark' : 'light');
+                themeLabel.textContent = isDark ? '淺色模式' : '深色模式';
+            };
+        }
+
+        function setViewMode(mode) {
+            viewMode = mode;
+            [viewEditBtn, viewSplitBtn, viewPreviewBtn].forEach(b => {
+                b.className = "px-2.5 py-1 rounded-md transition-all text-slate-600 dark:text-slate-400 font-medium";
+            });
+
+            const activeClass = "px-2.5 py-1 rounded-md transition-all bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white font-semibold";
+
+            if (mode === 'edit') {
+                viewEditBtn.className = activeClass;
+                editorPane.classList.remove('hidden');
+                previewPane.classList.add('hidden');
+            } else if (mode === 'preview') {
+                viewPreviewBtn.className = activeClass;
+                editorPane.classList.add('hidden');
+                previewPane.classList.remove('hidden');
+            } else if (mode === 'split') {
+                viewSplitBtn.className = activeClass;
+                editorPane.classList.remove('hidden');
+                previewPane.classList.remove('hidden');
+            }
+        }
+
+        function openModal(modal) {
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                const inner = modal.querySelector('div');
+                if (inner) inner.classList.remove('scale-95');
+            }, 10);
+        }
+
+        function closeModal(modal) {
+            modal.classList.add('opacity-0');
+            const inner = modal.querySelector('div');
+            if (inner) inner.classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 200);
+        }
+
+        function showToast(message, type = 'info') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            
+            let bgClass = 'bg-slate-800 text-white';
+            let icon = '<i class="fa-solid fa-circle-info text-blue-400"></i>';
+            if (type === 'success') {
+                bgClass = 'bg-slate-900 text-white border border-emerald-500/30';
+                icon = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+            } else if (type === 'error') {
+                bgClass = 'bg-rose-900 text-white';
+                icon = '<i class="fa-solid fa-circle-exclamation text-rose-300"></i>';
+            }
+
+            toast.className = `pointer-events-auto flex items-center space-x-2.5 px-4 py-2.5 rounded-xl text-xs font-medium shadow-xl transition-all duration-300 transform translate-y-2 opacity-0 ${bgClass}`;
+            toast.innerHTML = `${icon}<span>${escapeHtml(message)}</span>`;
+
+            toastContainer.appendChild(toast);
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-2', 'opacity-0');
+            }, 10);
+
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        function showSaveStatus() {
+            const saveStatusEl = document.getElementById('saveStatus');
+            if (saveStatusEl) {
+                saveStatusEl.classList.remove('opacity-0');
+            }
+        }
+
+        function deleteCustomCategory(cat) {
+            showConfirm(
+                `移除分類「${cat}」`,
+                `確定要移除此分類嗎？屬於該分類的筆記將會自動安全移至「未分類」。`,
+                () => {
+                    state.categories = state.categories.filter(c => c !== cat);
+                    if (state.customCategories) {
+                        state.customCategories = state.customCategories.filter(c => c !== cat);
+                    }
+                    state.notes.forEach(note => {
+                        if (note.category === cat) {
+                            note.category = '未分類';
+                            note.updatedAt = Date.now();
+                        }
+                    });
+                    if (state.activeView === 'category' && state.selectedCategoryName === cat) {
+                        state.activeView = 'all';
+                        state.selectedCategoryName = null;
+                    }
+                    saveData();
+                    renderSidebar();
+                    renderCategorySelectOptions();
+                    renderNoteList();
+                    renderActiveNote();
+                    showToast(`已移除分類「${cat}」`, 'info');
+                }
+            );
+        }
+
+        function showConfirm(title, message, onOk) {
+            confirmTitle.textContent = title;
+            confirmMessage.textContent = message;
+            openModal(confirmModal);
+            
+            const handleOk = () => {
+                closeModal(confirmModal);
+                okConfirmBtn.removeEventListener('click', handleOk);
+                cancelConfirmBtn.removeEventListener('click', handleCancel);
+                onOk();
+            };
+            const handleCancel = () => {
+                closeModal(confirmModal);
+                okConfirmBtn.removeEventListener('click', handleOk);
+                cancelConfirmBtn.removeEventListener('click', handleCancel);
+            };
+            
+            okConfirmBtn.onclick = handleOk;
+            cancelConfirmBtn.onclick = handleCancel;
+        }
+
+        function escapeHtml(str) {
+            if (!str) return '';
+            return str.replace(/[&<>"']/g, function(m) {
+                return {
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#039;'
+                }[m];
+            });
+        }
+
+        function formatDate(timestamp) {
+            const d = new Date(timestamp);
+            const now = new Date();
+            if (d.toDateString() === now.toDateString()) {
+                return d.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+            }
+            return `${d.getMonth() + 1}/${d.getDate()}`;
+        }
+
+        // Start on window load
+        window.onload = function() {
+            initApp();
+        };
+    </script>
+</body>
+</html>
