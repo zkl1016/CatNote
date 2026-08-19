@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="icon" href="icon.png" type="image/png" sizes="64x64">
     <title>CatNote 喵筆記</title>
-    <link rel="manifest" href="manifest.json">
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -91,7 +89,7 @@
             <!-- Sidebar Header -->
             <div class="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
                 <div class="flex items-center space-x-2.5 group" id="appTitleContainer">
-                    <div id="appLogoIcon" class="w-8 h-8 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
+                    <div id="appLogoIcon" class="w-8 h-8 flex items-center justify-center shrink-0">
                         <img src="icon.png" alt="CatNote 喵筆記 Logo" class="w-8 h-8 object-contain" onerror="this.onerror=null; this.src='https://placehold.co/32x32/22c55e/ffffff?text=🐱';">
                     </div>
                     <span id="appTitleText" class="font-bold text-lg tracking-wide text-slate-900 dark:text-white">CatNote 喵筆記</span>
@@ -172,7 +170,7 @@
             <!-- Search & Filter Header -->
             <div class="p-3 border-b border-slate-200 dark:border-slate-700 space-y-2">
                 <div class="flex items-center space-x-2">
-                    <button id="openSidebarBtn" class="md:hidden p-2 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700">
+                    <button id="openSidebarBtn" class="md:hidden p-2 text-slate-600 dark:text-slate-300 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 shrink-0">
                         <i class="fa-solid fa-bars"></i>
                     </button>
                     <div class="relative flex-1">
@@ -182,6 +180,9 @@
                             <i class="fa-solid fa-circle-xmark"></i>
                         </button>
                     </div>
+                    <button id="mobileHeaderNewNoteBtn" class="md:hidden bg-emerald-600 hover:bg-emerald-700 text-white p-2 rounded-xl text-sm font-medium flex items-center justify-center shrink-0" title="新增筆記">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
                 </div>
 
                 <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 px-1 pt-1">
@@ -205,10 +206,14 @@
         </section>
 
         <!-- MAIN EDITOR PANEL -->
-        <main id="editorPanel" class="flex-1 bg-white dark:bg-slate-900 flex flex-col h-full overflow-hidden relative">
+        <main id="editorPanel" class="flex-1 bg-white dark:bg-slate-900 hidden md:flex flex-col h-full overflow-hidden relative">
             
             <!-- Empty State -->
-            <div id="emptyState" class="hidden flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-900">
+            <div id="emptyState" class="hidden flex-1 flex flex-col items-center justify-center p-8 text-center bg-slate-50 dark:bg-slate-900 relative">
+                <button id="emptyStateBackBtn" class="md:hidden absolute top-4 left-4 px-3 py-1.5 bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-xl text-xs font-medium flex items-center space-x-1" title="返回列表">
+                    <i class="fa-solid fa-arrow-left"></i>
+                    <span>返回列表</span>
+                </button>
                 <div class="w-20 h-20 bg-emerald-100 dark:bg-emerald-950/60 rounded-full flex items-center justify-center text-emerald-600 dark:text-emerald-400 text-3xl mb-4 shadow-inner">
                     <i class="fa-solid fa-cat"></i>
                 </div>
@@ -216,16 +221,33 @@
                 <p class="text-slate-500 dark:text-slate-400 max-w-sm text-sm mb-6">隨時記錄靈感、整理知識，享受流暢 Markdown 寫作體驗。</p>
                 <button id="emptyStateNewBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-5 py-2.5 rounded-xl text-sm flex items-center space-x-2 shadow-md transition-all active:scale-95">
                     <i class="fa-solid fa-plus"></i>
-                    <span>立即建立新筆記</span>
+                    <span>開始建立第一篇筆記</span>
                 </button>
             </div>
 
             <!-- Active Editor Area -->
             <div id="activeEditor" class="flex-1 flex flex-col h-full">
                 
+                <!-- Trash Notice Banner -->
+                <div id="trashWarningBanner" class="hidden bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-200 px-4 py-2.5 border-b border-amber-200 dark:border-amber-900/50 text-xs flex items-center justify-between shrink-0">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-triangle-exclamation text-amber-600 dark:text-amber-400"></i>
+                        <span>此筆記位於垃圾桶中，處於唯讀狀態。</span>
+                    </div>
+                    <button id="bannerRestoreBtn" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-3 py-1 rounded-lg text-xs transition-all shadow-sm">
+                        還原筆記
+                    </button>
+                </div>
+
                 <!-- Editor Top Bar -->
                 <header class="border-b border-slate-200 dark:border-slate-800 p-3 flex flex-wrap items-center justify-between gap-2 bg-white dark:bg-slate-900 z-10">
                     <div class="flex items-center space-x-2 overflow-x-auto py-1">
+                        <!-- Back button for mobile -->
+                        <button id="backToListBtn" class="md:hidden px-2.5 py-1 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-lg text-xs font-medium flex items-center space-x-1 shrink-0 active:scale-95 transition-all" title="返回筆記列表">
+                            <i class="fa-solid fa-arrow-left"></i>
+                            <span>列表</span>
+                        </button>
+
                         <!-- Category Selector -->
                         <div class="flex items-center space-x-1.5 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-300">
                             <i class="fa-regular fa-folder text-emerald-600 dark:text-emerald-400"></i>
@@ -235,12 +257,12 @@
                         </div>
 
                         <!-- Pin Button -->
-                        <button id="pinNoteBtn" class="p-1.5 text-slate-400 hover:text-amber-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm" title="置頂筆記">
+                        <button id="pinNoteBtn" class="p-2 text-slate-400 hover:text-amber-500 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm shrink-0 min-w-[36px] min-h-[36px] flex items-center justify-center" title="置頂筆記">
                             <i class="fa-solid fa-thumbtack"></i>
                         </button>
 
                         <!-- Star Button -->
-                        <button id="starNoteBtn" class="p-1.5 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm" title="加到收藏">
+                        <button id="starNoteBtn" class="p-2 text-slate-400 hover:text-amber-400 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors text-sm shrink-0 min-w-[36px] min-h-[36px] flex items-center justify-center" title="加到收藏">
                             <i class="fa-regular fa-star"></i>
                         </button>
 
@@ -267,6 +289,11 @@
                         <!-- Export / Actions Dropdown -->
                         <button id="exportNoteMdBtn" class="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-sm" title="匯出 Markdown (.md)">
                             <i class="fa-solid fa-download"></i>
+                        </button>
+
+                        <!-- Restore Note Button (Shown only when in trash) -->
+                        <button id="restoreNoteBtn" class="hidden p-2 text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/30 rounded-lg text-sm transition-colors" title="還原筆記">
+                            <i class="fa-solid fa-rotate-left"></i>
                         </button>
 
                         <!-- Trash / Delete Button -->
@@ -353,7 +380,7 @@
                         <i class="fa-solid fa-file-import text-blue-600 dark:text-blue-400 text-lg"></i>
                         <div class="text-left">
                             <div class="text-sm font-semibold text-slate-800 dark:text-slate-200">匯入備份 JSON</div>
-                            <div class="text-[11px] text-slate-400">還原先前導出的 MeowNote 檔案</div>
+                            <div class="text-[11px] text-slate-400">還原先前導出的 CatNote 檔案</div>
                         </div>
                     </div>
                     <input type="file" id="importJsonInput" accept=".json" class="hidden">
@@ -381,15 +408,38 @@
     <!-- TOAST NOTIFICATION SYSTEM -->
     <div id="toastContainer" class="fixed bottom-5 right-5 z-50 flex flex-col space-y-2 pointer-events-none"></div>
 
+    <!-- JAVASCRIPT APP LOGIC -->
     <script>
+        function showMobileEditor() {
+            const listPanel = document.getElementById('listPanel');
+            const editorPanel = document.getElementById('editorPanel');
+            if (listPanel && editorPanel) {
+                listPanel.classList.add('hidden');
+                listPanel.classList.remove('flex');
+                editorPanel.classList.remove('hidden');
+                editorPanel.classList.add('flex');
+            }
+        }
+
+        function showMobileList() {
+            const listPanel = document.getElementById('listPanel');
+            const editorPanel = document.getElementById('editorPanel');
+            if (listPanel && editorPanel) {
+                listPanel.classList.remove('hidden');
+                listPanel.classList.add('flex');
+                editorPanel.classList.add('hidden');
+                editorPanel.classList.remove('flex');
+            }
+        }
+
         const STORAGE_KEY = 'meow_note_app_data_v2';
 
-        // Initial default state without sample notes
+        // Initial state with clean empty notes
         const defaultData = {
             appName: 'CatNote 喵筆記',
             categories: ['未分類', '工作項目', '個人想法', '讀書筆記'],
-            customCategories: [], // 追蹤使用者手動新增的分類
-            activeView: 'all', // 'all', 'favorites', 'trash', 'category', 'tag'
+            customCategories: [],
+            activeView: 'all',
             selectedCategoryName: null,
             selectedTag: null,
             activeNoteId: null,
@@ -399,6 +449,7 @@
         // Application State
         let state = loadData();
         let viewMode = 'edit'; // 'edit', 'split', 'preview'
+        let confirmAction = null;
 
         function loadData() {
             try {
@@ -408,6 +459,9 @@
                     parsed.appName = 'CatNote 喵筆記';
                     if (!parsed.categories) parsed.categories = defaultData.categories;
                     if (!parsed.customCategories) parsed.customCategories = [];
+                    parsed.activeView = 'all';
+                    parsed.selectedCategoryName = null;
+                    parsed.selectedTag = null;
                     return parsed;
                 }
             } catch (e) {
@@ -425,8 +479,16 @@
             }
         }
 
+        function escapeHtml(text) {
+            if (!text) return '';
+            return text.replace(/&/g, "&amp;")
+                       .replace(/</g, "&lt;")
+                       .replace(/>/g, "&gt;")
+                       .replace(/"/g, "&quot;")
+                       .replace(/'/g, "&#039;");
+        }
+
         function renderSidebar() {
-            // Calculate counts
             const activeNotes = state.notes.filter(n => !n.isTrash);
             const favNotes = state.notes.filter(n => !n.isTrash && n.isFavorite);
             const trashNotes = state.notes.filter(n => n.isTrash);
@@ -435,16 +497,15 @@
             document.getElementById('countFav').textContent = favNotes.length;
             document.getElementById('countTrash').textContent = trashNotes.length;
 
-            // Define styles
             const activeStyle = "bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400 font-semibold shadow-sm";
             const inactiveStyle = "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700/50 font-medium";
 
-            // 1. Reset Top Nav Styles
+            // Reset Top Nav
             navAllNotes.className = `nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${state.activeView === 'all' ? activeStyle : inactiveStyle}`;
             navFavorites.className = `nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${state.activeView === 'favorites' ? activeStyle : inactiveStyle}`;
             navTrash.className = `nav-item w-full flex items-center space-x-3 px-3 py-2.5 rounded-xl text-sm transition-colors ${state.activeView === 'trash' ? activeStyle : inactiveStyle}`;
 
-            // 2. Render Categories (EXACTLY ONE highlighted when in category view)
+            // Render Categories
             categoryList.innerHTML = '';
             state.categories.forEach(cat => {
                 const count = activeNotes.filter(n => n.category === cat).length;
@@ -478,15 +539,19 @@
                     state.activeView = 'category';
                     state.selectedCategoryName = cat;
                     state.selectedTag = null;
+                    state.activeNoteId = null;
                     renderSidebar();
                     renderNoteList();
-                    if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                    if (window.innerWidth < 768) {
+                        sidebar.classList.add('-translate-x-full');
+                        showMobileList();
+                    }
                 };
 
                 categoryList.appendChild(btn);
             });
 
-            // 3. Render Tag Cloud
+            // Render Tag Cloud
             tagCloud.innerHTML = '';
             const allTags = new Set();
             activeNotes.forEach(n => (n.tags || []).forEach(t => allTags.add(t)));
@@ -507,9 +572,13 @@
                         state.activeView = 'tag';
                         state.selectedTag = tag;
                         state.selectedCategoryName = null;
+                        state.activeNoteId = null;
                         renderSidebar();
                         renderNoteList();
-                        if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
+                        if (window.innerWidth < 768) {
+                            sidebar.classList.add('-translate-x-full');
+                            showMobileList();
+                        }
                     };
                     tagCloud.appendChild(pill);
                 });
@@ -517,25 +586,27 @@
         }
 
         function renderNoteList() {
-            // Update Title Header
-            if (state.activeView === 'all') currentViewTitle.textContent = '所有筆記';
-            else if (state.activeView === 'favorites') currentViewTitle.textContent = '星號收藏';
-            else if (state.activeView === 'trash') currentViewTitle.textContent = '垃圾桶';
-            else if (state.activeView === 'category') currentViewTitle.textContent = `分類：${state.selectedCategoryName}`;
-            else if (state.activeView === 'tag') currentViewTitle.textContent = `標籤：#${state.selectedTag}`;
+            let filtered = [...state.notes];
 
-            // Filter Notes
-            let filtered = state.notes.filter(n => {
-                if (state.activeView === 'trash') return n.isTrash;
-                if (n.isTrash) return false;
+            // View Filtering
+            if (state.activeView === 'favorites') {
+                filtered = filtered.filter(n => !n.isTrash && n.isFavorite);
+                currentViewTitle.textContent = "星號收藏";
+            } else if (state.activeView === 'trash') {
+                filtered = filtered.filter(n => n.isTrash);
+                currentViewTitle.textContent = "垃圾桶";
+            } else if (state.activeView === 'category') {
+                filtered = filtered.filter(n => !n.isTrash && n.category === state.selectedCategoryName);
+                currentViewTitle.textContent = `分類: ${state.selectedCategoryName}`;
+            } else if (state.activeView === 'tag') {
+                filtered = filtered.filter(n => !n.isTrash && (n.tags || []).includes(state.selectedTag));
+                currentViewTitle.textContent = `標籤: #${state.selectedTag}`;
+            } else {
+                filtered = filtered.filter(n => !n.isTrash);
+                currentViewTitle.textContent = "所有筆記";
+            }
 
-                if (state.activeView === 'favorites') return n.isFavorite;
-                if (state.activeView === 'category') return n.category === state.selectedCategoryName;
-                if (state.activeView === 'tag') return (n.tags || []).includes(state.selectedTag);
-                return true;
-            });
-
-            // Search Keyword Filter
+            // Search Keyword
             const query = searchInput.value.trim().toLowerCase();
             if (query) {
                 filtered = filtered.filter(n => 
@@ -544,70 +615,66 @@
                 );
             }
 
-            // Sort Notes
-            const sortMode = sortSelect.value;
+            // Sorting
+            const sortVal = sortSelect.value;
             filtered.sort((a, b) => {
-                // Pinned notes always come first if not in trash
-                if (state.activeView !== 'trash') {
-                    if (a.isPinned && !b.isPinned) return -1;
-                    if (!a.isPinned && b.isPinned) return 1;
-                }
-                if (sortMode === 'updated-desc') return b.updatedAt - a.updatedAt;
-                if (sortMode === 'updated-asc') return a.updatedAt - b.updatedAt;
-                if (sortMode === 'created-desc') return b.createdAt - a.createdAt;
-                if (sortMode === 'title-asc') return (a.title || '').localeCompare(b.title || '');
+                if (a.isPinned && !b.isPinned) return -1;
+                if (!a.isPinned && b.isPinned) return 1;
+
+                if (sortVal === 'updated-desc') return b.updatedAt - a.updatedAt;
+                if (sortVal === 'updated-asc') return a.updatedAt - b.updatedAt;
+                if (sortVal === 'created-desc') return b.createdAt - a.createdAt;
+                if (sortVal === 'title-asc') return (a.title || '').localeCompare(b.title || '');
                 return 0;
             });
 
-            // Render DOM
             notesContainer.innerHTML = '';
 
             if (filtered.length === 0) {
                 notesContainer.innerHTML = `
-                    <div class="p-8 text-center text-slate-400 dark:text-slate-500">
-                        <i class="fa-regular fa-folder-open text-3xl mb-3 opacity-60"></i>
-                        <p class="text-sm">沒有找到相符的筆記</p>
+                    <div class="p-8 text-center text-slate-400">
+                        <i class="fa-solid fa-folder-open text-3xl mb-2 text-slate-300 dark:text-slate-600"></i>
+                        <p class="text-xs">找不到符合條件的筆記</p>
                     </div>
                 `;
-                // If currently active note is filtered out, clear selection or keep empty
-                if (filtered.findIndex(n => n.id === state.activeNoteId) === -1) {
-                    state.activeNoteId = null;
-                    renderActiveNote();
-                }
+                state.activeNoteId = null;
+                renderActiveNote();
                 return;
             }
 
-            // If active note is not in filtered list, select the first one
-            if (!state.activeNoteId || filtered.findIndex(n => n.id === state.activeNoteId) === -1) {
-                state.activeNoteId = filtered[0].id;
+            if (!state.activeNoteId || !filtered.some(n => n.id === state.activeNoteId)) {
+                state.activeNoteId = null;
             }
 
             filtered.forEach(note => {
                 const isActive = note.id === state.activeNoteId;
                 const card = document.createElement('div');
-                card.className = `p-3.5 cursor-pointer transition-all border-l-4 ${
+                card.className = `p-3.5 cursor-pointer transition-all border-l-4 relative group ${
                     isActive 
-                    ? 'bg-emerald-50/70 dark:bg-emerald-950/30 border-emerald-500' 
-                    : 'bg-transparent border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/30'
+                    ? 'bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-500' 
+                    : 'border-transparent hover:bg-slate-50 dark:hover:bg-slate-700/30'
                 }`;
 
-                const cleanSnippet = (note.content || '').replace(/[#*`>_~-]/g, '').trim().substring(0, 70);
+                const cleanPreview = (note.content || '').replace(/[#*`_~>-]/g, '').trim();
 
                 card.innerHTML = `
-                    <div class="flex items-start justify-between gap-1 mb-1">
-                        <h4 class="font-bold text-sm text-slate-800 dark:text-slate-100 truncate flex-1">
-                            ${note.isPinned && !note.isTrash ? '<i class="fa-solid fa-thumbtack text-amber-500 text-xs mr-1"></i>' : ''}
+                    <div class="flex items-start justify-between gap-2 mb-1">
+                        <h4 class="font-semibold text-sm text-slate-800 dark:text-slate-100 truncate ${!note.title ? 'italic text-slate-400' : ''}">
                             ${escapeHtml(note.title || '無標題筆記')}
                         </h4>
-                        <span class="text-[11px] text-slate-400 shrink-0">${formatDate(note.updatedAt)}</span>
+                        <div class="flex items-center space-x-1 shrink-0 text-xs">
+                            ${note.isPinned ? '<i class="fa-solid fa-thumbtack text-amber-500"></i>' : ''}
+                            ${note.isFavorite ? '<i class="fa-solid fa-star text-amber-400"></i>' : ''}
+                        </div>
                     </div>
-                    <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 leading-relaxed mb-2">${escapeHtml(cleanSnippet) || '無內文...'}</p>
-                    <div class="flex items-center justify-between text-[11px]">
-                        <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300">
-                            <i class="fa-regular fa-folder text-[10px] mr-1 text-emerald-600 dark:text-emerald-400"></i>
+                    <p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mb-2 leading-relaxed">
+                        ${escapeHtml(cleanPreview || '尚無內容...')}
+                    </p>
+                    <div class="flex items-center justify-between text-[11px] text-slate-400 dark:text-slate-500">
+                        <span class="px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-700/80 text-slate-600 dark:text-slate-300 font-medium truncate max-w-[100px]">
                             ${escapeHtml(note.category || '未分類')}
                         </span>
-                        ${note.isFavorite ? '<i class="fa-solid fa-star text-amber-400"></i>' : ''}
+                        <span>${formatDate(note.updatedAt)}</span>
                     </div>
                 `;
 
@@ -615,6 +682,9 @@
                     state.activeNoteId = note.id;
                     renderNoteList();
                     renderActiveNote();
+                    if (window.innerWidth < 768) {
+                        showMobileEditor();
+                    }
                 };
 
                 notesContainer.appendChild(card);
@@ -627,94 +697,158 @@
             const note = state.notes.find(n => n.id === state.activeNoteId);
 
             if (!note) {
-                activeEditor.classList.add('hidden');
                 emptyState.classList.remove('hidden');
+                activeEditor.classList.add('hidden');
                 return;
             }
 
-            activeEditor.classList.remove('hidden');
             emptyState.classList.add('hidden');
+            activeEditor.classList.remove('hidden');
 
             noteTitleInput.value = note.title || '';
             noteContentArea.value = note.content || '';
 
-            // Update Pin & Star icon status
-            pinNoteBtn.className = `p-1.5 rounded-lg transition-colors text-sm ${note.isPinned ? 'text-amber-500 bg-amber-50 dark:bg-amber-950/40' : 'text-slate-400 hover:text-amber-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`;
-            starNoteBtn.className = `p-1.5 rounded-lg transition-colors text-sm ${note.isFavorite ? 'text-amber-400 bg-amber-50 dark:bg-amber-950/40' : 'text-slate-400 hover:text-amber-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`;
-            starNoteBtn.innerHTML = note.isFavorite ? '<i class="fa-solid fa-star"></i>' : '<i class="fa-regular fa-star"></i>';
+            // Handle Trash status UI & Readonly controls
+            const restoreBtn = document.getElementById('restoreNoteBtn');
+            const trashBanner = document.getElementById('trashWarningBanner');
+            const bannerRestoreBtn = document.getElementById('bannerRestoreBtn');
 
-            // Trash Mode Toggle
             if (note.isTrash) {
-                deleteNoteBtn.innerHTML = '<i class="fa-solid fa-rotate-left text-emerald-600" title="還原筆記"></i>';
-                noteTitleInput.disabled = true;
-                noteContentArea.disabled = true;
+                starNoteBtn.classList.add('hidden');
+                pinNoteBtn.classList.add('hidden');
+                if (restoreBtn) restoreBtn.classList.remove('hidden');
+                if (trashBanner) trashBanner.classList.remove('hidden');
+                if (bannerRestoreBtn) {
+                    bannerRestoreBtn.onclick = restoreActiveNote;
+                }
+                deleteNoteBtn.title = "永久刪除筆記";
+
+                noteTitleInput.readOnly = true;
+                noteContentArea.readOnly = true;
+                noteTitleInput.placeholder = '';
+                noteContentArea.placeholder = '';
+                noteCategorySelect.disabled = true;
+                addTagInlineBtn.classList.add('hidden');
             } else {
-                deleteNoteBtn.innerHTML = '<i class="fa-regular fa-trash-can" title="移至垃圾桶"></i>';
-                noteTitleInput.disabled = false;
-                noteContentArea.disabled = false;
+                starNoteBtn.classList.remove('hidden');
+                pinNoteBtn.classList.remove('hidden');
+                if (restoreBtn) restoreBtn.classList.add('hidden');
+                if (trashBanner) trashBanner.classList.add('hidden');
+                deleteNoteBtn.title = "刪除筆記";
+
+                noteTitleInput.readOnly = false;
+                noteContentArea.readOnly = false;
+                noteTitleInput.placeholder = '輸入筆記標題...';
+                noteContentArea.placeholder = '在此開始撰寫內容，支援 Markdown 語法...';
+                noteCategorySelect.disabled = false;
+                addTagInlineBtn.classList.remove('hidden');
             }
 
-            // Sync Category selector
-            noteCategorySelect.value = note.category || '未分類';
+            // Pin & Star button state & icon refresh
+            const pinIcon = pinNoteBtn.querySelector('i');
+            if (pinIcon) {
+                pinIcon.className = note.isPinned ? 'fa-solid fa-thumbtack text-amber-500' : 'fa-solid fa-thumbtack text-slate-400';
+            }
+            pinNoteBtn.className = `p-2 rounded-lg transition-colors text-sm shrink-0 min-w-[36px] min-h-[36px] flex items-center justify-center ${
+                note.isPinned ? 'bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`;
 
-            // Render Tags
-            noteTagsContainer.innerHTML = '';
-            (note.tags || []).forEach((tag, idx) => {
-                const pill = document.createElement('span');
-                pill.className = "inline-flex items-center space-x-1 px-2 py-0.5 rounded-lg bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 text-xs border border-emerald-200 dark:border-emerald-800/50";
-                pill.innerHTML = `
-                    <span>#${escapeHtml(tag)}</span>
-                    ${!note.isTrash ? `<button onclick="removeTagFromActiveNote(${idx})" class="hover:text-rose-500 ml-1"><i class="fa-solid fa-xmark text-[10px]"></i></button>` : ''}
-                `;
-                noteTagsContainer.appendChild(pill);
-            });
+            const starIcon = starNoteBtn.querySelector('i');
+            if (starIcon) {
+                starIcon.className = note.isFavorite ? 'fa-solid fa-star text-amber-400' : 'fa-regular fa-star text-slate-400';
+            }
+            starNoteBtn.className = `p-2 rounded-lg transition-colors text-sm shrink-0 min-w-[36px] min-h-[36px] flex items-center justify-center ${
+                note.isFavorite ? 'bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800' : 'hover:bg-slate-100 dark:hover:bg-slate-800'
+            }`;
 
-            updateMarkdownPreview();
-            updateWordStats();
-        }
-
-        function renderCategorySelectOptions() {
+            // Category select options
             noteCategorySelect.innerHTML = '';
             state.categories.forEach(cat => {
                 const opt = document.createElement('option');
                 opt.value = cat;
                 opt.textContent = cat;
+                if (cat === note.category) opt.selected = true;
                 noteCategorySelect.appendChild(opt);
             });
+
+            // Tags pills
+            noteTagsContainer.innerHTML = '';
+            (note.tags || []).forEach((tag, idx) => {
+                const pill = document.createElement('span');
+                pill.className = "inline-flex items-center space-x-1 text-xs px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-300 font-medium border border-emerald-200 dark:border-emerald-800";
+                pill.innerHTML = `
+                    <span>#${escapeHtml(tag)}</span>
+                    ${!note.isTrash ? `<button class="remove-tag-btn text-emerald-400 hover:text-emerald-600 ml-1" data-idx="${idx}">&times;</button>` : ''}
+                `;
+                noteTagsContainer.appendChild(pill);
+            });
+
+            updateMarkdownPreview();
+            updateStats();
+            setViewMode(viewMode);
         }
 
         function updateMarkdownPreview() {
             const raw = noteContentArea.value || '';
-            if (typeof marked !== 'undefined') {
+            if (typeof marked !== 'undefined' && typeof DOMPurify !== 'undefined') {
                 const parsed = marked.parse(raw);
-                previewContent.innerHTML = typeof DOMPurify !== 'undefined' ? DOMPurify.sanitize(parsed) : parsed;
+                previewContent.innerHTML = DOMPurify.sanitize(parsed);
             } else {
                 previewContent.textContent = raw;
             }
         }
 
-        function updateWordStats() {
+        function updateStats() {
             const text = noteContentArea.value || '';
-            const charCountVal = text.length;
-            const wordCountVal = text.trim() ? text.trim().split(/\s+/).length : 0;
-            const readTimeVal = Math.max(1, Math.ceil(wordCountVal / 200));
+            const chars = text.length;
+            const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+            const readMinutes = Math.max(1, Math.ceil(words / 200));
 
-            const wordCountEl = document.getElementById('wordCount');
-            const charCountEl = document.getElementById('charCount');
-            const readTimeEl = document.getElementById('readTime');
+            wordCount.textContent = `字數: ${words}`;
+            charCount.textContent = `字元: ${chars}`;
+            readTime.textContent = `預估閱讀: < ${readMinutes} 分鐘`;
+        }
 
-            if (wordCountEl) wordCountEl.textContent = `字數: ${wordCountVal}`;
-            if (charCountEl) charCountEl.textContent = `字元: ${charCountVal}`;
-            if (readTimeEl) readTimeEl.textContent = `預估閱讀: < ${readTimeVal} 分鐘`;
+        function setViewMode(mode) {
+            viewMode = mode;
+            const activeClass = "px-2.5 py-1 rounded-md transition-all bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white font-semibold";
+            const inactiveClass = "px-2.5 py-1 rounded-md transition-all text-slate-500 hover:text-slate-800 dark:hover:text-slate-200";
+
+            viewEditBtn.className = mode === 'edit' ? activeClass : inactiveClass;
+            viewSplitBtn.className = mode === 'split' ? activeClass : inactiveClass;
+            viewPreviewBtn.className = mode === 'preview' ? activeClass : inactiveClass;
+
+            if (mode === 'edit') {
+                editorPane.classList.remove('hidden');
+                previewPane.classList.add('hidden');
+            } else if (mode === 'preview') {
+                editorPane.classList.add('hidden');
+                previewPane.classList.remove('hidden');
+            } else if (mode === 'split') {
+                editorPane.classList.remove('hidden');
+                previewPane.classList.remove('hidden');
+            }
+        }
+
+        function restoreActiveNote() {
+            const note = state.notes.find(n => n.id === state.activeNoteId);
+            if (!note) return;
+            note.isTrash = false;
+            note.updatedAt = Date.now();
+            saveData();
+            renderSidebar();
+            renderNoteList();
+            renderActiveNote();
+            showToast('已成功還原筆記', 'success');
         }
 
         function createNewNote() {
             const newNote = {
-                id: 'note-' + Date.now(),
-                title: '無標題筆記',
+                id: 'note_' + Date.now(),
+                title: '',
                 content: '',
-                category: state.activeView === 'category' ? state.selectedCategoryName : '未分類',
-                tags: [],
+                category: state.selectedCategoryName || '未分類',
+                tags: state.selectedTag ? [state.selectedTag] : [],
                 isFavorite: false,
                 isPinned: false,
                 isTrash: false,
@@ -724,319 +858,53 @@
 
             state.notes.unshift(newNote);
             state.activeNoteId = newNote.id;
-
-            if (state.activeView === 'trash') {
-                state.activeView = 'all';
-            }
-
             saveData();
             renderSidebar();
             renderNoteList();
-            renderActiveNote();
+
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar) sidebar.classList.add('-translate-x-full');
+
+            if (window.innerWidth < 768) {
+                showMobileEditor();
+            }
 
             setTimeout(() => noteTitleInput.focus(), 100);
             showToast('已建立新筆記', 'success');
         }
 
-        function deleteOrRestoreNote() {
-            const note = state.notes.find(n => n.id === state.activeNoteId);
-            if (!note) return;
-
-            if (note.isTrash) {
-                // Restore
-                note.isTrash = false;
-                note.updatedAt = Date.now();
-                saveData();
-                renderSidebar();
-                renderNoteList();
-                showToast('已還原筆記', 'success');
-            } else {
-                // Move to trash
-                note.isTrash = true;
-                note.isPinned = false;
-                note.updatedAt = Date.now();
-                saveData();
-                renderSidebar();
-                renderNoteList();
-                showToast('已移至垃圾桶', 'info');
-            }
-        }
-
-        function addTagToNote() {
-            const note = state.notes.find(n => n.id === state.activeNoteId);
-            if (!note || note.isTrash) return;
-
-            const tag = prompt('請輸入新標籤名稱：');
-            if (tag && tag.trim()) {
-                const cleanTag = tag.trim().replace(/^#/, '');
-                if (!note.tags) note.tags = [];
-                if (!note.tags.includes(cleanTag)) {
-                    note.tags.push(cleanTag);
-                    saveData();
-                    renderSidebar();
-                    renderActiveNote();
-                    showToast(`已新增標籤「#${cleanTag}」`, 'success');
-                }
-            }
-        }
-
-        function removeTagFromActiveNote(index) {
-            const note = state.notes.find(n => n.id === state.activeNoteId);
-            if (!note || !note.tags) return;
-            note.tags.splice(index, 1);
-            saveData();
-            renderSidebar();
-            renderActiveNote();
-        }
-
-        function initApp() {
-            // Theme preference
-            if (localStorage.getItem('zen_theme') === 'dark' || (!('zen_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-                document.documentElement.classList.add('dark');
-                themeLabel.textContent = '淺色模式';
-            } else {
-                document.documentElement.classList.remove('dark');
-                themeLabel.textContent = '深色模式';
-            }
-
-            updateAppTitleUI();
-
-            if (!state.activeNoteId && state.notes.length > 0) {
-                const activeNotes = state.notes.filter(n => !n.isTrash);
-                if (activeNotes.length > 0) {
-                    state.activeNoteId = activeNotes[0].id;
-                }
-            }
-
-            renderSidebar();
-            renderCategorySelectOptions();
-            renderNoteList();
-            renderActiveNote();
-
-            setViewMode('edit');
-            setupEventListeners();
-        }
-
-        function updateAppTitleUI() {
-            const name = state.appName || 'CatNote 喵筆記';
-            document.getElementById('appTitleText').textContent = name;
-            document.title = name;
-        }
-
-        function setupEventListeners() {
-            // Sidebar toggle for mobile
-            openSidebarBtn.onclick = () => sidebar.classList.remove('-translate-x-full');
-            closeSidebarBtn.onclick = () => sidebar.classList.add('-translate-x-full');
-
-            // Top Navigation Click Events (Strict Reset View)
-            navAllNotes.onclick = () => {
-                state.activeView = 'all';
-                state.selectedCategoryName = null;
-                state.selectedTag = null;
-                renderSidebar();
-                renderNoteList();
-                if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
-            };
-
-            navFavorites.onclick = () => {
-                state.activeView = 'favorites';
-                state.selectedCategoryName = null;
-                state.selectedTag = null;
-                renderSidebar();
-                renderNoteList();
-                if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
-            };
-
-            navTrash.onclick = () => {
-                state.activeView = 'trash';
-                state.selectedCategoryName = null;
-                state.selectedTag = null;
-                renderSidebar();
-                renderNoteList();
-                if (window.innerWidth < 768) sidebar.classList.add('-translate-x-full');
-            };
-
-            newNoteBtn.onclick = createNewNote;
-            emptyStateNewBtn.onclick = createNewNote;
-
-            // Search
-            searchInput.oninput = () => {
-                if (searchInput.value.trim()) clearSearchBtn.classList.remove('hidden');
-                else clearSearchBtn.classList.add('hidden');
-                renderNoteList();
-            };
-
-            clearSearchBtn.onclick = () => {
-                searchInput.value = '';
-                clearSearchBtn.classList.add('hidden');
-                renderNoteList();
-            };
-
-            sortSelect.onchange = () => renderNoteList();
-
-            // Real-time Title & Content editing
-            noteTitleInput.oninput = () => {
-                const note = state.notes.find(n => n.id === state.activeNoteId);
-                if (note) {
-                    note.title = noteTitleInput.value;
-                    note.updatedAt = Date.now();
-                    saveData();
-                    renderNoteList();
-                }
-            };
-
-            noteContentArea.oninput = () => {
-                const note = state.notes.find(n => n.id === state.activeNoteId);
-                if (note) {
-                    note.content = noteContentArea.value;
-                    note.updatedAt = Date.now();
-                    saveData();
-                    updateMarkdownPreview();
-                    updateWordStats();
-                    renderNoteList();
-                }
-            };
-
-            noteCategorySelect.onchange = () => {
-                const note = state.notes.find(n => n.id === state.activeNoteId);
-                if (note) {
-                    note.category = noteCategorySelect.value;
-                    note.updatedAt = Date.now();
-                    saveData();
-                    renderSidebar();
-                    renderNoteList();
-                }
-            };
-
-            pinNoteBtn.onclick = () => {
-                const note = state.notes.find(n => n.id === state.activeNoteId);
-                if (note) {
-                    note.isPinned = !note.isPinned;
-                    saveData();
-                    renderActiveNote();
-                    renderNoteList();
-                    showToast(note.isPinned ? '已置頂筆記' : '已取消置頂', 'info');
-                }
-            };
-
-            starNoteBtn.onclick = () => {
-                const note = state.notes.find(n => n.id === state.activeNoteId);
-                if (note) {
-                    note.isFavorite = !note.isFavorite;
-                    saveData();
-                    renderSidebar();
-                    renderActiveNote();
-                    renderNoteList();
-                    showToast(note.isFavorite ? '已加入星號收藏' : '已移除收藏', 'info');
-                }
-            };
-
-            addTagInlineBtn.onclick = addTagToNote;
-            deleteNoteBtn.onclick = deleteOrRestoreNote;
-
-            // View modes
-            viewEditBtn.onclick = () => setViewMode('edit');
-            viewSplitBtn.onclick = () => setViewMode('split');
-            viewPreviewBtn.onclick = () => setViewMode('preview');
-
-            // Category Modal
-            addCategoryBtn.onclick = () => openModal(addCategoryModal);
-            cancelCategoryBtn.onclick = () => closeModal(addCategoryModal);
-            confirmCategoryBtn.onclick = () => {
-                const name = categoryNameInput.value.trim();
-                if (name && !state.categories.includes(name)) {
-                    state.categories.push(name);
-                    if (!state.customCategories) state.customCategories = [];
-                    state.customCategories.push(name);
-                    saveData();
-                    renderSidebar();
-                    renderCategorySelectOptions();
-                    categoryNameInput.value = '';
-                    closeModal(addCategoryModal);
-                    showToast(`已新增分類「${name}」`, 'success');
-                }
-            };
-
-            // Data Modal
-            exportImportBtn.onclick = () => openModal(dataModal);
-            closeDataModalBtn.onclick = () => closeModal(dataModal);
-
-            exportJsonBtn.onclick = () => {
-                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
-                const downloadAnchor = document.createElement('a');
-                downloadAnchor.setAttribute("href", dataStr);
-                downloadAnchor.setAttribute("download", `MeowNote_Backup_${new Date().toISOString().slice(0,10)}.json`);
-                document.body.appendChild(downloadAnchor);
-                downloadAnchor.click();
-                downloadAnchor.remove();
-                showToast('已成功匯出 JSON 備份', 'success');
-            };
-
-            importJsonInput.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        try {
-                            const imported = JSON.parse(event.target.result);
-                            if (imported && imported.notes) {
-                                state = imported;
-                                saveData();
-                                initApp();
-                                closeModal(dataModal);
-                                showToast('已成功還原備份資料', 'success');
-                            } else {
-                                showToast('無效的備份檔案格式', 'error');
-                            }
-                        } catch (err) {
-                            showToast('讀取檔案失敗', 'error');
+        function deleteCustomCategory(cat) {
+            showConfirm(
+                `移除分類「${cat}」`,
+                `確定要移除此分類嗎？屬於該分類的筆記將會自動安全移至「未分類」。`,
+                () => {
+                    state.categories = state.categories.filter(c => c !== cat);
+                    if (state.customCategories) {
+                        state.customCategories = state.customCategories.filter(c => c !== cat);
+                    }
+                    state.notes.forEach(note => {
+                        if (note.category === cat) {
+                            note.category = '未分類';
+                            note.updatedAt = Date.now();
                         }
-                    };
-                    reader.readAsText(file);
+                    });
+                    if (state.activeView === 'category' && state.selectedCategoryName === cat) {
+                        state.activeView = 'all';
+                        state.selectedCategoryName = null;
+                    }
+                    saveData();
+                    renderSidebar();
+                    renderNoteList();
+                    showToast(`已移除分類「${cat}」`, 'info');
                 }
-            };
-
-            exportNoteMdBtn.onclick = () => {
-                const note = state.notes.find(n => n.id === state.activeNoteId);
-                if (!note) return;
-                const blob = new Blob([note.content], { type: 'text/markdown;charset=utf-8' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `${note.title || 'Untitled'}.md`;
-                a.click();
-                URL.revokeObjectURL(url);
-                showToast('已匯出 Markdown 檔案', 'success');
-            };
-
-            themeToggleBtn.onclick = () => {
-                const isDark = document.documentElement.classList.toggle('dark');
-                localStorage.setItem('zen_theme', isDark ? 'dark' : 'light');
-                themeLabel.textContent = isDark ? '淺色模式' : '深色模式';
-            };
+            );
         }
 
-        function setViewMode(mode) {
-            viewMode = mode;
-            [viewEditBtn, viewSplitBtn, viewPreviewBtn].forEach(b => {
-                b.className = "px-2.5 py-1 rounded-md transition-all text-slate-600 dark:text-slate-400 font-medium";
-            });
-
-            const activeClass = "px-2.5 py-1 rounded-md transition-all bg-white dark:bg-slate-700 shadow-sm text-slate-900 dark:text-white font-semibold";
-
-            if (mode === 'edit') {
-                viewEditBtn.className = activeClass;
-                editorPane.classList.remove('hidden');
-                previewPane.classList.add('hidden');
-            } else if (mode === 'preview') {
-                viewPreviewBtn.className = activeClass;
-                editorPane.classList.add('hidden');
-                previewPane.classList.remove('hidden');
-            } else if (mode === 'split') {
-                viewSplitBtn.className = activeClass;
-                editorPane.classList.remove('hidden');
-                previewPane.classList.remove('hidden');
-            }
+        function showConfirm(title, message, onConfirm) {
+            confirmTitle.textContent = title;
+            confirmMessage.textContent = message;
+            confirmAction = onConfirm;
+            openModal(confirmModal);
         }
 
         function openModal(modal) {
@@ -1093,81 +961,361 @@
             }
         }
 
-        function deleteCustomCategory(cat) {
-            showConfirm(
-                `移除分類「${cat}」`,
-                `確定要移除此分類嗎？屬於該分類的筆記將會自動安全移至「未分類」。`,
-                () => {
-                    state.categories = state.categories.filter(c => c !== cat);
-                    if (state.customCategories) {
-                        state.customCategories = state.customCategories.filter(c => c !== cat);
-                    }
-                    state.notes.forEach(note => {
-                        if (note.category === cat) {
-                            note.category = '未分類';
-                            note.updatedAt = Date.now();
-                        }
-                    });
-                    if (state.activeView === 'category' && state.selectedCategoryName === cat) {
-                        state.activeView = 'all';
-                        state.selectedCategoryName = null;
-                    }
-                    saveData();
-                    renderSidebar();
-                    renderCategorySelectOptions();
-                    renderNoteList();
-                    renderActiveNote();
-                    showToast(`已移除分類「${cat}」`, 'info');
-                }
-            );
-        }
-
-        function showConfirm(title, message, onOk) {
-            confirmTitle.textContent = title;
-            confirmMessage.textContent = message;
-            openModal(confirmModal);
-            
-            const handleOk = () => {
-                closeModal(confirmModal);
-                okConfirmBtn.removeEventListener('click', handleOk);
-                cancelConfirmBtn.removeEventListener('click', handleCancel);
-                onOk();
-            };
-            const handleCancel = () => {
-                closeModal(confirmModal);
-                okConfirmBtn.removeEventListener('click', handleOk);
-                cancelConfirmBtn.removeEventListener('click', handleCancel);
-            };
-            
-            okConfirmBtn.onclick = handleOk;
-            cancelConfirmBtn.onclick = handleCancel;
-        }
-
-        function escapeHtml(str) {
-            if (!str) return '';
-            return str.replace(/[&<>"']/g, function(m) {
-                return {
-                    '&': '&amp;',
-                    '<': '&lt;',
-                    '>': '&gt;',
-                    '"': '&quot;',
-                    "'": '&#039;'
-                }[m];
-            });
-        }
-
         function formatDate(timestamp) {
             const d = new Date(timestamp);
             const now = new Date();
             if (d.toDateString() === now.toDateString()) {
-                return d.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: false });
+                return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             }
             return `${d.getMonth() + 1}/${d.getDate()}`;
         }
 
-        // Start on window load
         window.onload = function() {
-            initApp();
+            // Mobile Sidebar Toggle
+            openSidebarBtn.onclick = () => sidebar.classList.remove('-translate-x-full');
+            closeSidebarBtn.onclick = () => sidebar.classList.add('-translate-x-full');
+
+            // Top Nav
+            navAllNotes.onclick = () => {
+                state.activeView = 'all';
+                state.selectedCategoryName = null;
+                state.selectedTag = null;
+                state.activeNoteId = null;
+                renderSidebar();
+                renderNoteList();
+                if (window.innerWidth < 768) {
+                    sidebar.classList.add('-translate-x-full');
+                    showMobileList();
+                }
+            };
+
+            navFavorites.onclick = () => {
+                state.activeView = 'favorites';
+                state.selectedCategoryName = null;
+                state.selectedTag = null;
+                state.activeNoteId = null;
+                renderSidebar();
+                renderNoteList();
+                if (window.innerWidth < 768) {
+                    sidebar.classList.add('-translate-x-full');
+                    showMobileList();
+                }
+            };
+
+            navTrash.onclick = () => {
+                state.activeView = 'trash';
+                state.selectedCategoryName = null;
+                state.selectedTag = null;
+                state.activeNoteId = null;
+                renderSidebar();
+                renderNoteList();
+                if (window.innerWidth < 768) {
+                    sidebar.classList.add('-translate-x-full');
+                    showMobileList();
+                }
+            };
+
+            navFavorites.onclick = () => {
+                state.activeView = 'favorites';
+                state.selectedCategoryName = null;
+                state.selectedTag = null;
+                renderSidebar();
+                renderNoteList();
+                if (window.innerWidth < 768) {
+                    sidebar.classList.add('-translate-x-full');
+                    showMobileList();
+                }
+            };
+
+            navTrash.onclick = () => {
+                state.activeView = 'trash';
+                state.selectedCategoryName = null;
+                state.selectedTag = null;
+                renderSidebar();
+                renderNoteList();
+                if (window.innerWidth < 768) {
+                    sidebar.classList.add('-translate-x-full');
+                    showMobileList();
+                }
+            };
+
+            // Buttons
+            newNoteBtn.onclick = createNewNote;
+            emptyStateNewBtn.onclick = createNewNote;
+            const mobileHeaderNewNoteBtn = document.getElementById('mobileHeaderNewNoteBtn');
+            if (mobileHeaderNewNoteBtn) mobileHeaderNewNoteBtn.onclick = createNewNote;
+
+            const backToListBtn = document.getElementById('backToListBtn');
+            if (backToListBtn) {
+                backToListBtn.onclick = () => showMobileList();
+            }
+            const emptyStateBackBtn = document.getElementById('emptyStateBackBtn');
+            if (emptyStateBackBtn) {
+                emptyStateBackBtn.onclick = () => showMobileList();
+            }
+
+            // Note Live Inputs
+            noteTitleInput.oninput = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note && !note.isTrash) {
+                    note.title = noteTitleInput.value;
+                    note.updatedAt = Date.now();
+                    saveData();
+                    renderNoteList();
+                }
+            };
+
+            noteContentArea.oninput = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note && !note.isTrash) {
+                    note.content = noteContentArea.value;
+                    note.updatedAt = Date.now();
+                    saveData();
+                    updateMarkdownPreview();
+                    updateStats();
+                    renderNoteList();
+                }
+            };
+
+            // Category Select in Editor
+            noteCategorySelect.onchange = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note && !note.isTrash) {
+                    note.category = noteCategorySelect.value;
+                    note.updatedAt = Date.now();
+                    saveData();
+                    renderSidebar();
+                    renderNoteList();
+                }
+            };
+
+            // Pin / Star Toggle
+            pinNoteBtn.onclick = (e) => {
+                if (e) e.preventDefault();
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note) {
+                    note.isPinned = !note.isPinned;
+                    note.updatedAt = Date.now();
+                    saveData();
+                    renderNoteList();
+                    renderActiveNote();
+                    showToast(note.isPinned ? '已置頂筆記' : '已取消置頂', 'info');
+                }
+            };
+
+            starNoteBtn.onclick = (e) => {
+                if (e) e.preventDefault();
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (note && !note.isTrash) {
+                    note.isFavorite = !note.isFavorite;
+                    note.updatedAt = Date.now();
+                    saveData();
+                    renderSidebar();
+                    renderNoteList();
+                    renderActiveNote();
+                    showToast(note.isFavorite ? '已加入收藏' : '已取消收藏', 'success');
+                }
+            };
+
+            // Restore Note Button
+            const restoreBtn = document.getElementById('restoreNoteBtn');
+            if (restoreBtn) {
+                restoreBtn.onclick = restoreActiveNote;
+            }
+
+            // Add Inline Tag
+            addTagInlineBtn.onclick = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (!note || note.isTrash) return;
+                const tag = prompt('輸入標籤名稱:');
+                if (tag && tag.trim()) {
+                    const cleanTag = tag.trim().replace(/^#/, '');
+                    if (!note.tags) note.tags = [];
+                    if (!note.tags.includes(cleanTag)) {
+                        note.tags.push(cleanTag);
+                        note.updatedAt = Date.now();
+                        saveData();
+                        renderSidebar();
+                        renderActiveNote();
+                    }
+                }
+            };
+
+            noteTagsContainer.onclick = (e) => {
+                if (e.target.classList.contains('remove-tag-btn')) {
+                    const idx = parseInt(e.target.dataset.idx);
+                    const note = state.notes.find(n => n.id === state.activeNoteId);
+                    if (note && note.tags) {
+                        note.tags.splice(idx, 1);
+                        note.updatedAt = Date.now();
+                        saveData();
+                        renderSidebar();
+                        renderActiveNote();
+                    }
+                }
+            };
+
+            // Delete Note Button
+            deleteNoteBtn.onclick = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (!note) return;
+
+                if (note.isTrash) {
+                    showConfirm(
+                        '永久刪除筆記',
+                        '確定要永久刪除此筆記嗎？此動作將無法復原。',
+                        () => {
+                            state.notes = state.notes.filter(n => n.id !== note.id);
+                            state.activeNoteId = null;
+                            saveData();
+                            renderSidebar();
+                            renderNoteList();
+                            if (window.innerWidth < 768) showMobileList();
+                            showToast('已永久刪除筆記', 'error');
+                        }
+                    );
+                } else {
+                    note.isTrash = true;
+                    note.isPinned = false;
+                    note.updatedAt = Date.now();
+                    saveData();
+                    renderSidebar();
+                    renderNoteList();
+                    if (window.innerWidth < 768) showMobileList();
+                    showToast('已移至垃圾桶', 'info');
+                }
+            };
+
+            // View modes
+            viewEditBtn.onclick = () => setViewMode('edit');
+            viewSplitBtn.onclick = () => setViewMode('split');
+            viewPreviewBtn.onclick = () => setViewMode('preview');
+
+            // Add category modal
+            addCategoryBtn.onclick = () => {
+                categoryNameInput.value = '';
+                openModal(addCategoryModal);
+                setTimeout(() => categoryNameInput.focus(), 100);
+            };
+
+            cancelCategoryBtn.onclick = () => closeModal(addCategoryModal);
+
+            confirmCategoryBtn.onclick = () => {
+                const name = categoryNameInput.value.trim();
+                if (name) {
+                    if (!state.categories.includes(name)) {
+                        state.categories.push(name);
+                        if (!state.customCategories) state.customCategories = [];
+                        state.customCategories.push(name);
+                        saveData();
+                        renderSidebar();
+                        renderActiveNote();
+                        showToast(`已新增分類「${name}」`, 'success');
+                    }
+                    closeModal(addCategoryModal);
+                }
+            };
+
+            // Export MD
+            exportNoteMdBtn.onclick = () => {
+                const note = state.notes.find(n => n.id === state.activeNoteId);
+                if (!note) return;
+                const blob = new Blob([note.content || ''], { type: 'text/markdown;charset=utf-8' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${note.title || 'CatNote'}.md`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('已匯出 Markdown 檔案', 'success');
+            };
+
+            // Backup & Data Modal
+            exportImportBtn.onclick = () => openModal(dataModal);
+            closeDataModalBtn.onclick = () => closeModal(dataModal);
+
+            exportJsonBtn.onclick = () => {
+                const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `catnote_backup_${Date.now()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                showToast('已備份完整資料 JSON', 'success');
+            };
+
+            importJsonInput.onchange = (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (evt) => {
+                    try {
+                        const parsed = JSON.parse(evt.target.result);
+                        if (parsed && parsed.notes) {
+                            state = parsed;
+                            saveData();
+                            renderSidebar();
+                            renderNoteList();
+                            closeModal(dataModal);
+                            showToast('數據匯入成功！', 'success');
+                        }
+                    } catch (err) {
+                        showToast('JSON 格式不正確', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            // Confirm Modal Buttons
+            cancelConfirmBtn.onclick = () => {
+                closeModal(confirmModal);
+                confirmAction = null;
+            };
+
+            okConfirmBtn.onclick = () => {
+                if (confirmAction) confirmAction();
+                closeModal(confirmModal);
+                confirmAction = null;
+            };
+
+            // Theme Toggle
+            themeToggleBtn.onclick = () => {
+                const isDark = document.documentElement.classList.toggle('dark');
+                themeLabel.textContent = isDark ? '淺色模式' : '深色模式';
+            };
+
+            // Search & Sort
+            searchInput.oninput = () => {
+                clearSearchBtn.classList.toggle('hidden', !searchInput.value);
+                renderNoteList();
+            };
+
+            clearSearchBtn.onclick = () => {
+                searchInput.value = '';
+                clearSearchBtn.classList.add('hidden');
+                renderNoteList();
+            };
+
+            sortSelect.onchange = () => renderNoteList();
+
+            // Handle Resize
+            window.addEventListener('resize', () => {
+                if (window.innerWidth >= 768) {
+                    listPanel.classList.remove('hidden');
+                    listPanel.classList.add('flex');
+                    editorPanel.classList.remove('hidden');
+                    editorPanel.classList.add('flex');
+                }
+            });
+
+            // Initial render
+            renderSidebar();
+            renderNoteList();
+
+            if (window.innerWidth < 768) {
+                showMobileList();
+            }
         };
     </script>
 </body>
